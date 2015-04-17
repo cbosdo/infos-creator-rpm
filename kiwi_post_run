@@ -1,0 +1,45 @@
+#!/bin/sh
+
+: ${TOPDIR:=/usr/src/packages}
+TARGET_DIR=$TOPDIR/KIWI-vmx/
+RPM_SOURCE_DIR=$TOPDIR/SOURCES
+
+cd $TARGET_DIR
+
+# Compute the qcow2 filename
+IMG_NAME=$(xmllint --xpath 'string(/image/@name)' $RPM_SOURCE_DIR/*.kiwi)
+IMG_VERSION=$(xmllint --xpath '/image/preferences/version/text()' $RPM_SOURCE_DIR/*.kiwi)
+ARCH=$(uname -m)
+IMG=$IMG_NAME.$ARCH-$IMG_VERSION.qcow2
+
+
+# xz compress the file
+xz --best -k $IMG
+
+# the file size
+SIZE=$(stat -c %s $IMG.xz)
+
+# the file sha512sum
+CHECKSUM=$(sha512sum $IMG.xz | awk '{print $1}')
+
+# HACKY Get the release version.
+RELEASED_FILE=$(cd $TOPDIR/KIWI ; ls $IMG_NAME.$ARCH-$IMG_VERSION-Build*.qcow2 ; cd $OLDPWD)
+RELEASE=$(echo $RELEASED_FILE | sed -e "s/^$IMG_NAME\.$ARCH-$IMG_VERSION-Build\([0-9.]\+\)\.qcow2$/\1/")
+
+# Compute the revision from the version 2.0.1 -> 201
+REVISION=$(echo $IMG_VERSION$RELEASE | tr -d '.' | sed -e 's/^0\+\([1-9][0-9]*\)/\1/')
+FILE=$IMG_NAME.$ARCH-$IMG_VERSION-Build$RELEASE
+
+
+# Create the part from the index.part.in
+sed -e "s/__FILE__/$FILE.qcow2.xz/g" \
+    -e "s/__SIZE__/$SIZE/g" \
+    -e "s/__ARCH__/$ARCH/g" \
+    -e "s/__CHECKSUM__/$CHECKSUM/g" \
+    -e "s/__REVISION__/$REVISION/g" \
+    < $RPM_SOURCE_DIR/index.part.in \
+    > $IMG_NAME.$ARCH-$IMG_VERSION.index
+
+echo "Bundle $FILE.qcow2.xz and $FILE.index"
+cp $IMG.xz $TOPDIR/KIWI/$FILE.qcow2.xz
+cp $IMG_NAME.$ARCH-$IMG_VERSION.index $TOPDIR/KIWI/$FILE.index
