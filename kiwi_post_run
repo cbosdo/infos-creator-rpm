@@ -7,10 +7,10 @@ RPM_SOURCE_DIR=$TOPDIR/SOURCES
 cd $TARGET_DIR
 
 # Compute the qcow2 filename
-IMG_NAME=$(xmllint --xpath 'string(/image/@name)' $RPM_SOURCE_DIR/*.kiwi)
-IMG_VERSION=$(xmllint --xpath '/image/preferences/version/text()' $RPM_SOURCE_DIR/*.kiwi)
 ARCH=$(uname -m)
-IMG=$IMG_NAME.$ARCH-$IMG_VERSION.qcow2
+IMG=$(ls *.$ARCH-*.qcow2)
+IMG_NAME=$(echo $IMG | sed "s/.$ARCH-/\//" | cut -f1 -d '/')
+IMG_VERSION=$(echo $IMG | sed 's/.x86_64-/\//; s/^[^/]\+\/\([^-]\+\).qcow2/\1/')
 
 
 # xz compress the file
