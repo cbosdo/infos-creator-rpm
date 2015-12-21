@@ -7,6 +7,11 @@ RPM_SOURCE_DIR=$TOPDIR/SOURCES
 
 cd $TARGET_DIR
 
+# If there is no index.part.in, then don't do anything
+if ! test -f "$RPM_SOURCE_DIR/index.part.in"; then
+    exit 0
+fi
+
 # Compute the qcow2 filename
 ARCH=$(uname -m)
 IMG=$(ls *.$ARCH-*.qcow2)
