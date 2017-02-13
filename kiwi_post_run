@@ -36,10 +36,13 @@ RELEASE=$(echo $RELEASED_FILE | sed -e "s/^$IMG_NAME\.$ARCH-$IMG_VERSION-Build\(
 REVISION=$(echo $IMG_VERSION$RELEASE | tr -d '.' | sed -e 's/^0\+\([1-9][0-9]*\)/\1/')
 FILE=$IMG_NAME.$ARCH-$IMG_VERSION-Build$RELEASE
 
+# Virtual size
+VIRTUAL_SIZE=$(qemu-img info --output json $IMG | grep virtual-size | tr -d ' ,' | cut -d ':' -f2)
 
 # Create the part from the index.part.in
 sed -e "s/__FILE__/$FILE.qcow2.xz/g" \
     -e "s/__SIZE__/$SIZE/g" \
+    -e "s/__VIRTUAL_SIZE__/$VIRTUAL_SIZE/g" \
     -e "s/__ARCH__/$ARCH/g" \
     -e "s/__CHECKSUM__/$CHECKSUM/g" \
     -e "s/__REVISION__/$REVISION/g" \
