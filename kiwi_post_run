@@ -7,17 +7,17 @@ RPM_SOURCE_DIR=$TOPDIR/SOURCES
 
 cd $TARGET_DIR
 
-# If there is no index.part.in, then don't do anything
-if ! test -f "$RPM_SOURCE_DIR/index.part.in"; then
-    exit 0
-fi
-
 # Compute the qcow2 filename
 ARCH=$(uname -m)
 IMG=$(ls *.$ARCH-*.qcow2)
 IMG_NAME=$(echo $IMG | sed "s/.$ARCH-/\//" | cut -f1 -d '/')
 IMG_VERSION=$(echo $IMG | sed 's/.x86_64-/\//; s/^[^/]\+\/\([^-]\+\).qcow2/\1/')
 
+# If we don't have the corresponding .virtbuilder.template, then stop
+TEMPLATE=$RPM_SOURCE_DIR/$IMG_NAME.virtbuilder.template
+if ! test -f "$TEMPLATE"; then
+    exit 0
+fi
 
 # xz compress the file
 xz --best -k $IMG
@@ -43,7 +43,7 @@ sed -e "s/__FILE__/$FILE.qcow2.xz/g" \
     -e "s/__ARCH__/$ARCH/g" \
     -e "s/__CHECKSUM__/$CHECKSUM/g" \
     -e "s/__REVISION__/$REVISION/g" \
-    < $RPM_SOURCE_DIR/index.part.in \
+    < "$TEMPLATE" \
     > $IMG_NAME.$ARCH-$IMG_VERSION.index
 
 echo "Bundle $FILE.qcow2.xz and $FILE.index"
