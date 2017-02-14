@@ -32,7 +32,7 @@ CHECKSUM=$(sha512sum $IMG.xz | awk '{print $1}')
 RELEASED_FILE=$(cd $TOPDIR/KIWI ; ls $IMG_NAME.$ARCH-$IMG_VERSION-Build*.qcow2 ; cd $OLDPWD)
 RELEASE=$(echo $RELEASED_FILE | sed -e "s/^$IMG_NAME\.$ARCH-$IMG_VERSION-Build\([0-9.]\+\)\.qcow2$/\1/")
 
-# Compute the revision from the version 2.0.1 -> 201
+# Compute the revision from the version and release 2.0.1 / 11.1  -> 201111
 REVISION=$(echo $IMG_VERSION$RELEASE | tr -d '.' | sed -e 's/^0\+\([1-9][0-9]*\)/\1/')
 FILE=$IMG_NAME.$ARCH-$IMG_VERSION-Build$RELEASE
 
